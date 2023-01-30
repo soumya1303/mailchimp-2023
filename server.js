@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const https = require('https');
 const PORT = process.env.PORT || 3000;
+const fs = require('fs');
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
@@ -35,11 +36,17 @@ app.post('/', (req, res)=>{
             const skip_dup_check=true;
             const dc = 'us6';
             const listId= 'ee54c5bacb';
-            const option={
-                auth:'som:b5efc9a4cff0bc63d9812a529e5429fa-us6',
-                method:'POST'
-            }
-
+            var api_key='';
+            var option={}
+            fs.readFile(__dirname+'/mailchimp_api_key', (err, data)=>{
+                api_key=String(data);
+                option={
+                    auth:'som:'+api_key,
+                    method:'POST'
+                }
+                console.log(option);
+            });
+            
             const target='https://'+dc+'.api.mailchimp.com/3.0/lists/'+listId+'?skip_merge_validation='+skip_merge_validation+'&skip_duplicate_check='+skip_dup_check;
 
             try {
@@ -60,8 +67,9 @@ app.post('/', (req, res)=>{
                         });
             
                     }else{
-                        console.log("Connection failure");
-                        res.sendFile(__dirname + "/failure.html");
+                        console.log('Connection failure. Error code [' + resp.statusCode +']');
+                        console.log(__dirname);
+                        res.sendFile(__dirname + "/html/failure.html");
                     }
             
                 });
@@ -70,11 +78,11 @@ app.post('/', (req, res)=>{
                 
             } catch (error) {
                 console.log("Some Error Happened.");
-                res.sendFile(__dirname + "/failure.html");
+                res.sendFile(__dirname + "/html/failure.html");
             }
     } catch (error) {
         console.log("Some Error Happened.");
-        res.sendFile(__dirname + "/failure.html");
+        res.sendFile(__dirname + "/html/failure.html");
     }
 
     
